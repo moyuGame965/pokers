@@ -531,6 +531,15 @@ function resetGameState() {
     gameState.maxBet = Infinity;
     gameState.extraInfo = false;
     
+    // 清除上一局对手的行动指示器和状态
+    document.querySelectorAll('.action-indicator, .hand-info').forEach(el => el.remove());
+    
+    // 重置对手卡牌显示
+    document.querySelectorAll('.opponent-card').forEach(card => {
+        card.className = 'opponent-card';
+        card.innerHTML = '';
+    });
+    
     // 根据玩家经验动态调整游戏难度
     adjustGameDifficulty();
     
@@ -661,10 +670,23 @@ function setupOpponents() {
         
         gameState.opponents.push(opponent);
         
-        // 创建对手UI
+        // 创建对手UI，增加更多游戏进度信息
         const opponentEl = document.createElement('div');
         opponentEl.className = 'opponent';
         opponentEl.id = `opponent-${i}`;
+        
+        // 计算胜率和诈唬频率（如果有历史数据）
+        const winRate = opponent.gameStats.handsPlayed > 0 
+            ? Math.round((opponent.gameStats.handsWon / opponent.gameStats.handsPlayed) * 100) 
+            : 0;
+        
+        const bluffRate = opponent.gameStats.bluffAttempts > 0 
+            ? Math.round((opponent.gameStats.bluffSuccess / opponent.gameStats.bluffAttempts) * 100) 
+            : 0;
+        
+        // 创建风格指示器
+        const styleIndicators = createStyleIndicators(opponent.traits);
+        
         opponentEl.innerHTML = `
             <div class="opponent-name">${opponent.name} (${opponent.type})</div>
             <div class="opponent-money">${opponent.money}</div>
@@ -673,10 +695,52 @@ function setupOpponents() {
                 <div class="opponent-card"></div>
             </div>
             <div class="opponent-bet">下注: 0</div>
+            <div class="opponent-stats">
+                <div class="opponent-stat-item">
+                    <div class="stat-label">胜率</div>
+                    <div class="stat-value">${winRate}%</div>
+                </div>
+                <div class="opponent-style-indicators">
+                    ${styleIndicators}
+                </div>
+                <div class="opponent-status-icons">
+                    ${opponent.isDrunk ? '<span class="status-icon drunk" title="醉酒状态">🍺</span>' : ''}
+                </div>
+            </div>
         `;
         
         opponentsContainerEl.appendChild(opponentEl);
     }
+}
+
+// 创建对手风格指示器
+function createStyleIndicators(traits) {
+    // 计算各方面特征的百分比值（相对于理论最大值）
+    const aggressiveness = Math.min(100, Math.round((1 - traits.foldThreshold) * 100));
+    const tightness = Math.min(100, Math.round(traits.callThreshold * 100));
+    const bluffing = Math.min(100, Math.round(traits.bluffChance * 100 * 3)); // 乘以3是为了放大显示
+    
+    // 创建指示器HTML
+    return `
+        <div class="style-indicator" title="激进度: ${aggressiveness}%">
+            <div class="indicator-label">激进</div>
+            <div class="indicator-bar">
+                <div class="indicator-fill" style="width: ${aggressiveness}%"></div>
+            </div>
+        </div>
+        <div class="style-indicator" title="紧密度: ${tightness}%">
+            <div class="indicator-label">紧密</div>
+            <div class="indicator-bar">
+                <div class="indicator-fill" style="width: ${tightness}%"></div>
+            </div>
+        </div>
+        <div class="style-indicator" title="诈唬倾向: ${bluffing}%">
+            <div class="indicator-label">诈唬</div>
+            <div class="indicator-bar">
+                <div class="indicator-fill" style="width: ${bluffing}%"></div>
+            </div>
+        </div>
+    `;
 }
 
 // 辅助函数：洗牌数组
@@ -841,6 +905,9 @@ function opponentsActions() {
         
         if (opponent.hasFolded) continue;
         
+        // 更新对手游戏统计
+        opponent.gameStats.handsPlayed = Math.max(1, opponent.gameStats.handsPlayed);
+        
         const decision = opponent.isDrunk ? getRandomAction() : getOpponentDecision(opponent);
         
         switch (decision.action) {
@@ -848,10 +915,13 @@ function opponentsActions() {
                 opponent.hasFolded = true;
                 logEvent(`${opponent.name} 选择了弃牌`);
                 showNotification(`${opponent.name} 选择了弃牌`, 'info');
+                // 高亮显示弃牌状态
+                updateOpponentUI(opponent, '已弃牌');
                 break;
                 
             case 'check':
                 logEvent(`${opponent.name} 选择了看牌`);
+                updateOpponentUI(opponent, '看牌');
                 break;
                 
             case 'call':
@@ -859,8 +929,10 @@ function opponentsActions() {
                 if (callAmount > 0) {
                     placeBet(opponent, callAmount);
                     logEvent(`${opponent.name} 跟注了 ${callAmount} 筹码`);
+                    updateOpponentUI(opponent, `跟注 ${callAmount}`);
                 } else {
                     logEvent(`${opponent.name} 看牌`);
+                    updateOpponentUI(opponent, '看牌');
                 }
                 break;
                 
@@ -882,8 +954,10 @@ function opponentsActions() {
                         if (raiseAmount > gameState.pot * 0.5) {
                             showNotification(`${opponent.name} 大幅加注！`, 'warning');
                         }
+                        updateOpponentUI(opponent, `加注 ${raiseAmount}`, true);
                     } else {
                         logEvent(`${opponent.name} 加注了 ${raiseAmount} 筹码`);
+                        updateOpponentUI(opponent, `加注 ${raiseAmount}`);
                     }
                     
                     allActed = false; // 如果有人加注，其他人需要再次行动
@@ -899,6 +973,103 @@ function opponentsActions() {
         setActionButtonsState(true);
         updateRaiseInput();
     }
+}
+
+// 更新对手UI
+function updateOpponentUI(opponent, actionText, isBluffing = false) {
+    const opponentEl = document.getElementById(`opponent-${opponent.id}`);
+    if (!opponentEl) return;
+    
+    // 更新下注金额
+    opponentEl.querySelector('.opponent-bet').textContent = `下注: ${gameState.roundBets[`opponent-${opponent.id}`] || 0}`;
+    
+    // 更新金钱
+    opponentEl.querySelector('.opponent-money').textContent = opponent.money;
+    
+    // 根据行动类型确定CSS类
+    let actionClass = '';
+    if (actionText.includes('弃牌')) {
+        actionClass = 'fold-action';
+    } else if (actionText.includes('看牌')) {
+        actionClass = 'check-action';
+    } else if (actionText.includes('跟注')) {
+        actionClass = 'call-action';
+    } else if (actionText.includes('加注')) {
+        actionClass = 'raise-action';
+    } else if (actionText.includes('获胜')) {
+        actionClass = 'win-action';
+    }
+    
+    // 添加诈唬状态
+    const statusClass = isBluffing ? 'bluffing-action' : '';
+    
+    // 创建或更新行动指示器
+    let actionIndicator = opponentEl.querySelector('.action-indicator');
+    if (!actionIndicator) {
+        actionIndicator = document.createElement('div');
+        actionIndicator.className = `action-indicator ${actionClass} ${statusClass}`;
+        opponentEl.appendChild(actionIndicator);
+    } else {
+        actionIndicator.className = `action-indicator ${actionClass} ${statusClass}`;
+    }
+    actionIndicator.textContent = actionText;
+    
+    // 闪烁指示器
+    flashElement(actionIndicator);
+    
+    // 更新游戏统计
+    const winRate = opponent.gameStats.handsPlayed > 0 
+        ? Math.round((opponent.gameStats.handsWon / opponent.gameStats.handsPlayed) * 100) 
+        : 0;
+    
+    opponentEl.querySelector('.stat-value').textContent = `${winRate}%`;
+    
+    // 更新诈唬状态
+    updateOpponentStatuses(opponent);
+}
+
+// 更新对手状态指示器
+function updateOpponentStatuses(opponent) {
+    const opponentEl = document.getElementById(`opponent-${opponent.id}`);
+    if (!opponentEl) return;
+    
+    const statusIcons = opponentEl.querySelector('.opponent-status-icons');
+    statusIcons.innerHTML = '';
+    
+    // 醉酒状态
+    if (opponent.isDrunk) {
+        const drunkIcon = document.createElement('span');
+        drunkIcon.className = 'status-icon drunk';
+        drunkIcon.title = '醉酒状态：行为不可预测';
+        drunkIcon.textContent = '🍺';
+        statusIcons.appendChild(drunkIcon);
+    }
+    
+    // 诈唬状态
+    if (opponent.isBluffing && gameState.extraInfo) {
+        const bluffIcon = document.createElement('span');
+        bluffIcon.className = 'status-icon bluffing';
+        bluffIcon.title = '可能在诈唬';
+        bluffIcon.textContent = '🎭';
+        statusIcons.appendChild(bluffIcon);
+    }
+    
+    // 胜率特别高
+    if (opponent.gameStats.handsWon > 5 && (opponent.gameStats.handsWon / Math.max(1, opponent.gameStats.handsPlayed)) > 0.7) {
+        const hotStreakIcon = document.createElement('span');
+        hotStreakIcon.className = 'status-icon hot-streak';
+        hotStreakIcon.title = '赢牌热潮';
+        hotStreakIcon.textContent = '🔥';
+        statusIcons.appendChild(hotStreakIcon);
+    }
+}
+
+// 闪烁元素
+function flashElement(element) {
+    element.style.animation = 'none';
+    setTimeout(() => {
+        element.style.animation = 'flash 1s';
+    }, 10);
 }
 
 // 获取对手决策
@@ -1326,7 +1497,16 @@ function showdown() {
             opponent.cards.forEach((card, index) => {
                 cardEls[index].classList.add('revealed');
                 cardEls[index].innerHTML = `${card.value}${card.suit}`;
+                // 添加花色类以设置颜色
+                if (card.suit === '♥' || card.suit === '♦') {
+                    cardEls[index].classList.add('heart');
+                } else {
+                    cardEls[index].classList.add('spade');
+                }
             });
+            
+            // 更新对手状态为"摊牌"
+            updateOpponentUI(opponent, '摊牌');
         }
     });
     
@@ -1338,6 +1518,13 @@ function showdown() {
         if (!opponent.hasFolded) {
             const strength = calculateHandStrength(opponent.cards, gameState.communityCards);
             opponentStrengths.push({ opponent, strength });
+            
+            // 显示手牌强度信息
+            const opponentEl = document.getElementById(`opponent-${opponent.id}`);
+            let handInfo = document.createElement('div');
+            handInfo.className = 'hand-info';
+            handInfo.textContent = getHandTypeName(strength);
+            opponentEl.appendChild(handInfo);
         }
     });
     
@@ -1368,7 +1555,20 @@ function showdown() {
     
     // 处理连胜和连败统计
     gameState.handsPlayed++;
-    saveGameData();
+}
+
+// 根据手牌强度获取牌型名称
+function getHandTypeName(strength) {
+    if (strength >= 9) return '皇家同花顺';
+    if (strength >= 8) return '同花顺';
+    if (strength >= 7) return '四条';
+    if (strength >= 6) return '葫芦';
+    if (strength >= 5) return '同花';
+    if (strength >= 4) return '顺子';
+    if (strength >= 3) return '三条';
+    if (strength >= 2) return '两对';
+    if (strength >= 1) return '一对';
+    return '高牌';
 }
 
 // 玩家获胜
@@ -1424,8 +1624,14 @@ function opponentWins(opponent) {
     gameState.winStreak = 0;
     gameState.gameStats.totalLosses++;
     
-    const opponentEl = document.getElementById(`opponent-${opponent.id}`);
-    opponentEl.querySelector('.opponent-money').textContent = opponent.money;
+    // 更新UI
+    updateOpponentUI(opponent, '获胜');
+    
+    // 如果对手在诈唬，更新诈唬成功次数
+    if (opponent.isBluffing) {
+        opponent.gameStats.bluffSuccess++;
+        updateOpponentStatuses(opponent);
+    }
     
     logEvent(`${opponent.name} 赢了 ${gameState.pot} 筹码`);
     showNotification(`${opponent.name} 赢了 ${gameState.pot} 筹码`, 'error');

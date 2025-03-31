@@ -170,6 +170,25 @@ header h1 {
     text-align: center;
 }
 
+.opponent-name {
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #f8d64e;
+    font-size: 14px;
+}
+
+.opponent-money {
+    color: #4CAF50;
+    margin-bottom: 5px;
+    font-size: 13px;
+}
+
+.opponent-bet {
+    color: #FF9800;
+    margin-top: 3px;
+    font-size: 13px;
+}
+
 .opponent-cards {
     display: flex;
     justify-content: center;
@@ -187,6 +206,95 @@ header h1 {
 
 .opponent-card.revealed {
     background-color: #ffffff;
+}
+
+/* 对手统计和游戏进度信息样式 */
+.opponent-stats {
+    margin-top: 8px;
+    padding-top: 5px;
+    border-top: 1px dashed #084226;
+    font-size: 12px;
+}
+
+.opponent-stat-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 3px;
+}
+
+.stat-label {
+    color: #9e9e9e;
+}
+
+.stat-value {
+    color: #64e9f8;
+    font-weight: bold;
+}
+
+/* 风格指示器样式 */
+.opponent-style-indicators {
+    margin-top: 5px;
+}
+
+.style-indicator {
+    margin-bottom: 3px;
+}
+
+.indicator-label {
+    text-align: left;
+    font-size: 10px;
+    color: #9e9e9e;
+}
+
+.indicator-bar {
+    height: 4px;
+    background-color: #052e17;
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 2px;
+}
+
+.indicator-fill {
+    height: 100%;
+    background-color: #f8d64e;
+    border-radius: 2px;
+}
+
+/* 激进度指示器使用较暖色 */
+.style-indicator:nth-child(1) .indicator-fill {
+    background-color: #ff5722;
+}
+
+/* 紧密度指示器使用冷色 */
+.style-indicator:nth-child(2) .indicator-fill {
+    background-color: #2196F3;
+}
+
+/* 诈唬倾向指示器使用紫色 */
+.style-indicator:nth-child(3) .indicator-fill {
+    background-color: #9C27B0;
+}
+
+/* 状态图标样式 */
+.opponent-status-icons {
+    margin-top: 5px;
+    height: 20px;
+}
+
+.status-icon {
+    font-size: 14px;
+    margin: 0 2px;
+    cursor: help;
+}
+
+.status-icon.drunk {
+    animation: wobble 2s infinite;
+}
+
+@keyframes wobble {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-2px) rotate(-5deg); }
+    75% { transform: translateX(2px) rotate(5deg); }
 }
 
 .actions {
@@ -648,4 +756,67 @@ button:active:not(:disabled) {
     background-color: #64e9f8;
     border-radius: 3px;
     transition: width 0.5s ease;
+}
+
+/* 对手行动指示器样式 */
+.action-indicator {
+    background-color: #052e17;
+    border-radius: 12px;
+    padding: 3px 8px;
+    font-size: 11px;
+    color: white;
+    display: inline-block;
+    margin-top: 5px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.action-indicator.bluffing-action {
+    background-color: #9C27B0;
+    animation: pulsate 2s infinite;
+}
+
+@keyframes flash {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+@keyframes pulsate {
+    0% { box-shadow: 0 0 0 0 rgba(156, 39, 176, 0.7); }
+    70% { box-shadow: 0 0 0 5px rgba(156, 39, 176, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(156, 39, 176, 0); }
+}
+
+/* 根据行动类型添加颜色 */
+.fold-action {
+    background-color: #f44336;
+}
+
+.check-action {
+    background-color: #2196F3;
+}
+
+.call-action {
+    background-color: #FF9800;
+}
+
+.raise-action {
+    background-color: #9C27B0;
+}
+
+.win-action {
+    background-color: #4CAF50;
+    font-weight: bold;
+}
+
+/* 手牌信息样式 */
+.hand-info {
+    margin-top: 5px;
+    background-color: #063b1e;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    color: #f8d64e;
+    display: inline-block;
+    border: 1px dashed #064522;
 } 
