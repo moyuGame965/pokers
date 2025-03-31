@@ -1,0 +1,651 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
+}
+
+body {
+    background-color: #0a4828;
+    color: #ffffff;
+    padding: 20px;
+}
+
+.game-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 3fr 1fr;
+    gap: 20px;
+}
+
+header {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background-color: #063b1e;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+header h1 {
+    color: #f8d64e;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.player-info {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.money, .level {
+    background-color: #052e17;
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-size: 18px;
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
+}
+
+#player-money {
+    color: #f8d64e;
+    font-weight: bold;
+    margin-left: 5px;
+}
+
+#player-level {
+    color: #64e9f8;
+    font-weight: bold;
+    margin-left: 5px;
+}
+
+.help-button {
+    background-color: #052e17;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    color: #64e9f8;
+    font-size: 20px;
+    padding: 0;
+    transition: all 0.3s ease;
+}
+
+.help-button:hover {
+    background-color: #064522;
+    transform: scale(1.1);
+}
+
+.game-area {
+    background-color: #0d5732;
+    border-radius: 10px;
+    padding: 20px;
+    display: grid;
+    grid-template-rows: auto auto auto auto auto;
+    gap: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.community-cards, .pot-container, .opponents, .player-hand, .actions, .dealer-message {
+    background-color: #084226;
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+.dealer-message {
+    text-align: center;
+    color: #f8f8f8;
+    font-style: italic;
+}
+
+.cards-container {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+    min-height: 100px;
+    padding: 10px;
+}
+
+.card {
+    width: 70px;
+    height: 100px;
+    background-color: #ffffff;
+    border-radius: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 24px;
+    color: #000;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+    position: relative;
+    transition: transform 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-10px);
+}
+
+.card.heart, .card.diamond {
+    color: #e32;
+}
+
+.card.spade, .card.club {
+    color: #000;
+}
+
+.card::before {
+    content: attr(data-value);
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    font-size: 16px;
+}
+
+.card::after {
+    content: attr(data-suit);
+    position: absolute;
+    font-size: 24px;
+}
+
+#opponents-container {
+    display: flex;
+    gap: 15px;
+    justify-content: space-around;
+    flex-wrap: wrap;
+}
+
+.opponent {
+    background-color: #063b1e;
+    border-radius: 8px;
+    padding: 10px;
+    min-width: 120px;
+    text-align: center;
+}
+
+.opponent-cards {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    margin-top: 5px;
+}
+
+.opponent-card {
+    width: 40px;
+    height: 60px;
+    background-color: #224b35;
+    border-radius: 3px;
+    box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.opponent-card.revealed {
+    background-color: #ffffff;
+}
+
+.actions {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 20px;
+}
+
+.action-button-group {
+    position: relative;
+    display: inline-block;
+}
+
+.action-button-group .tooltip {
+    visibility: hidden;
+    width: 160px;
+    background-color: #052e17;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 8px;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -80px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    font-size: 14px;
+}
+
+.action-button-group .tooltip::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #052e17 transparent transparent transparent;
+}
+
+.action-button-group:hover .tooltip {
+    visibility: visible;
+    opacity: 1;
+}
+
+.raise-control {
+    display: flex;
+    align-items: center;
+    background-color: #052e17;
+    padding: 10px;
+    border-radius: 5px;
+    width: 100%;
+    max-width: 300px;
+    margin-top: 10px;
+}
+
+button {
+    padding: 10px 25px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    font-size: 16px;
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+#start-game {
+    background-color: #4CAF50;
+    color: white;
+    padding: 12px 30px;
+    font-size: 18px;
+    margin-bottom: 15px;
+    width: 100%;
+}
+
+#fold {
+    background-color: #f44336;
+    color: white;
+}
+
+#check {
+    background-color: #2196F3;
+    color: white;
+}
+
+#call {
+    background-color: #FF9800;
+    color: white;
+}
+
+#raise {
+    background-color: #9C27B0;
+    color: white;
+}
+
+button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+button:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+#raise-amount {
+    flex-grow: 1;
+    max-width: 200px;
+    margin-right: 10px;
+    height: 8px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: #064522;
+    outline: none;
+    border-radius: 10px;
+}
+
+#raise-amount::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #f8d64e;
+    cursor: pointer;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+}
+
+#raise-amount::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #f8d64e;
+    cursor: pointer;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+}
+
+#raise-value {
+    color: #f8d64e;
+    font-weight: bold;
+    min-width: 30px;
+    text-align: center;
+}
+
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.achievements, .events {
+    background-color: #0d5732;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.achievements h2, .events h2 {
+    color: #f8d64e;
+    margin-bottom: 10px;
+    text-align: center;
+    border-bottom: 1px solid #084226;
+    padding-bottom: 5px;
+}
+
+#achievements-list {
+    list-style-type: none;
+}
+
+#achievements-list li {
+    margin: 10px 0;
+    padding: 10px;
+    background-color: #084226;
+    border-radius: 5px;
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.3);
+}
+
+#achievements-list li.unlocked {
+    background-color: #1a653f;
+    border-left: 4px solid #f8d64e;
+}
+
+#events-log {
+    height: 300px;
+    overflow-y: auto;
+    padding: 10px;
+    background-color: #084226;
+    border-radius: 5px;
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.3);
+}
+
+.event-entry {
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px dashed #0a4828;
+}
+
+.event-time {
+    font-size: 0.8em;
+    color: #aaa;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: #0d5732;
+    padding: 20px;
+    border-radius: 10px;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    text-align: center;
+}
+
+.rules-content {
+    max-width: 800px;
+    max-height: 80vh;
+    overflow-y: auto;
+    text-align: left;
+}
+
+.rules-container {
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.rules-container h3 {
+    color: #f8d64e;
+    margin: 15px 0 10px 0;
+    border-bottom: 1px solid #064522;
+    padding-bottom: 5px;
+}
+
+.rules-container p, .rules-container li {
+    margin-bottom: 8px;
+    line-height: 1.5;
+}
+
+.rules-container ul, .rules-container ol {
+    padding-left: 20px;
+    margin-bottom: 15px;
+}
+
+.modal h2 {
+    color: #f8d64e;
+    margin-bottom: 15px;
+}
+
+#accept-event, #close-rules {
+    background-color: #4CAF50;
+    color: white;
+    margin-top: 15px;
+    padding: 10px 30px;
+}
+
+.dynamic-tooltip {
+    position: absolute;
+    background-color: #052e17;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    z-index: 1000;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.action-highlight {
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0px rgba(248, 214, 78, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(248, 214, 78, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0px rgba(248, 214, 78, 0);
+    }
+}
+
+/* 通知样式 */
+.notification {
+    position: fixed;
+    top: 30px;
+    right: 30px;
+    padding: 12px 20px;
+    border-radius: 8px;
+    color: white;
+    font-weight: bold;
+    z-index: 2000;
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    max-width: 300px;
+}
+
+.notification.info {
+    background-color: #2196F3;
+}
+
+.notification.success {
+    background-color: #4CAF50;
+}
+
+.notification.warning {
+    background-color: #FF9800;
+}
+
+.notification.error {
+    background-color: #f44336;
+}
+
+/* 浮动金额和经验样式 */
+.floating-amount, .floating-exp {
+    position: fixed;
+    font-weight: bold;
+    pointer-events: none;
+    z-index: 1500;
+    transition: all 1s ease;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.floating-amount {
+    font-size: 24px;
+}
+
+.floating-amount.success {
+    color: #4CAF50;
+}
+
+.floating-amount.error {
+    color: #f44336;
+}
+
+.floating-exp {
+    color: #64e9f8;
+    font-size: 18px;
+}
+
+/* 事件日志样式增强 */
+.event-entry {
+    position: relative;
+    padding: 8px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.event-entry.new-event {
+    animation: highlight-event 2s ease;
+}
+
+@keyframes highlight-event {
+    0% { background-color: rgba(248, 214, 78, 0.1); }
+    50% { background-color: rgba(248, 214, 78, 0.3); }
+    100% { background-color: transparent; }
+}
+
+/* 成就弹出样式 */
+.achievement-popup {
+    position: fixed;
+    bottom: 30px;
+    left: 30px;
+    background-color: #0d5732;
+    border: 2px solid #f8d64e;
+    border-radius: 10px;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+    z-index: 2000;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.5s ease;
+    max-width: 350px;
+}
+
+.achievement-popup .achievement-icon {
+    font-size: 30px;
+    min-width: 40px;
+    text-align: center;
+}
+
+.achievement-popup .achievement-info {
+    flex-grow: 1;
+}
+
+.achievement-popup .achievement-name {
+    font-weight: bold;
+    color: #f8d64e;
+    margin-bottom: 5px;
+    font-size: 16px;
+}
+
+.achievement-popup .achievement-description {
+    font-size: 14px;
+    color: #f0f0f0;
+}
+
+/* 破产模态框样式 */
+.modal-content button#restart-game {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 25px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-top: 15px;
+    transition: all 0.2s ease;
+}
+
+.modal-content button#restart-game:hover {
+    background-color: #3e8e41;
+    transform: translateY(-2px);
+}
+
+/* 进度条样式 (可选用于经验值显示) */
+.progress-bar {
+    width: 100%;
+    height: 6px;
+    background-color: #052e17;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 5px;
+}
+
+.progress-fill {
+    height: 100%;
+    background-color: #64e9f8;
+    border-radius: 3px;
+    transition: width 0.5s ease;
+} 

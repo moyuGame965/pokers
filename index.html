@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>德州扑克</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+</head>
+
+<body>
+    <div class="game-container">
+        <header>
+            <h1>德州扑克</h1>
+            <div class="player-info">
+                <div class="money">
+                    <span>余额:</span>
+                    <span id="player-money">1000</span>
+                </div>
+                <div class="level">
+                    <span>等级:</span>
+                    <span id="player-level">新手</span>
+                </div>
+                <button id="help-button" class="help-button" title="游戏规则">
+                    <i class="fas fa-question-circle"></i>
+                </button>
+            </div>
+        </header>
+
+        <div class="game-area">
+            <div class="community-cards">
+                <h3>公共牌</h3>
+                <div id="community-cards-container" class="cards-container"></div>
+            </div>
+
+            <div class="dealer-message">
+                <p id="game-message">欢迎来到德州扑克游戏，请点击开始游戏按钮开始！</p>
+            </div>
+
+            <div class="pot-container">
+                <h3>底池: <span id="pot-amount">0</span></h3>
+            </div>
+
+            <div class="opponents">
+                <h3>对手</h3>
+                <div id="opponents-container"></div>
+            </div>
+
+            <div class="player-hand">
+                <h3>你的手牌</h3>
+                <div id="player-cards" class="cards-container"></div>
+            </div>
+
+            <div class="actions">
+                <button id="start-game">开始游戏</button>
+                <div class="action-button-group">
+                    <button id="fold" disabled class="action-button">弃牌</button>
+                    <div class="tooltip">放弃当前手牌，退出本轮游戏</div>
+                </div>
+                <div class="action-button-group">
+                    <button id="check" disabled class="action-button">看牌</button>
+                    <div class="tooltip">不下注，将行动权交给下一位玩家</div>
+                </div>
+                <div class="action-button-group">
+                    <button id="call" disabled class="action-button">跟注</button>
+                    <div class="tooltip">跟随当前最高注额</div>
+                </div>
+                <div class="action-button-group">
+                    <button id="raise" disabled class="action-button">加注</button>
+                    <div class="tooltip">增加当前最高注额</div>
+                </div>
+                <div class="raise-control">
+                    <input type="range" id="raise-amount" min="1" max="100" value="10" disabled>
+                    <span id="raise-value">10</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <div class="achievements">
+                <h2>成就</h2>
+                <ul id="achievements-list">
+                    <!-- 成就将在这里动态添加 -->
+                </ul>
+            </div>
+            <div class="events">
+                <h2>事件日志</h2>
+                <div id="events-log">
+                    <!-- 事件将在这里记录 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="random-event-modal" class="modal">
+        <div class="modal-content">
+            <h2>随机事件</h2>
+            <p id="random-event-description"></p>
+            <button id="accept-event">接受</button>
+        </div>
+    </div>
+
+    <div id="rules-modal" class="modal">
+        <div class="modal-content rules-content">
+            <h2>德州扑克游戏规则</h2>
+            <div class="rules-container">
+                <h3>基本规则</h3>
+                <p>德州扑克是一种流行的扑克游戏，每位玩家有2张底牌，桌面上有5张公共牌，玩家通过组合手牌和公共牌的最佳组合获胜。</p>
+
+                <h3>游戏流程</h3>
+                <ol>
+                    <li><strong>发手牌：</strong>每位玩家获得2张不公开的底牌</li>
+                    <li><strong>下前注：</strong>游戏开始时，有两个强制下注位置：小盲注和大盲注</li>
+                    <li><strong>第一轮下注：</strong>玩家可以选择跟注、加注或弃牌</li>
+                    <li><strong>翻牌：</strong>发3张公共牌，进行第二轮下注</li>
+                    <li><strong>转牌：</strong>发第4张公共牌，进行第三轮下注</li>
+                    <li><strong>河牌：</strong>发第5张公共牌，进行最后一轮下注</li>
+                    <li><strong>摊牌：</strong>所有剩余玩家亮出手牌，最佳牌型的玩家获胜</li>
+                </ol>
+
+                <h3>牌型大小（从高到低）</h3>
+                <ol>
+                    <li><strong>皇家同花顺：</strong>同一花色的 A-K-Q-J-10</li>
+                    <li><strong>同花顺：</strong>同一花色的连续五张牌</li>
+                    <li><strong>四条：</strong>四张相同点数的牌</li>
+                    <li><strong>葫芦：</strong>三条加一对</li>
+                    <li><strong>同花：</strong>五张同一花色的牌</li>
+                    <li><strong>顺子：</strong>五张连续点数的牌</li>
+                    <li><strong>三条：</strong>三张相同点数的牌</li>
+                    <li><strong>两对：</strong>两个不同的对子</li>
+                    <li><strong>一对：</strong>两张相同点数的牌</li>
+                    <li><strong>高牌：</strong>不符合以上任何牌型，以最高点数的牌为准</li>
+                </ol>
+
+                <h3>玩家操作</h3>
+                <ul>
+                    <li><strong>弃牌（Fold）：</strong>放弃当前手牌，退出本轮游戏</li>
+                    <li><strong>看牌（Check）：</strong>在没有其他玩家下注时，保留手牌但不下注</li>
+                    <li><strong>跟注（Call）：</strong>下注与当前最高注额相同的筹码</li>
+                    <li><strong>加注（Raise）：</strong>增加当前最高注额</li>
+                </ul>
+
+                <h3>游戏特色</h3>
+                <ul>
+                    <li><strong>金钱系统：</strong>开始游戏时有1000筹码，赢取更多筹码以提升等级</li>
+                    <li><strong>成就系统：</strong>完成特定目标解锁成就</li>
+                    <li><strong>随机事件：</strong>游戏中随机触发特殊事件，增加游戏乐趣</li>
+                    <li><strong>等级系统：</strong>获取经验值提升等级，挑战更高级别的对手</li>
+                </ul>
+            </div>
+            <button id="close-rules">我知道了</button>
+        </div>
+    </div>
+
+    <div id="action-tooltip" class="dynamic-tooltip"></div>
+
+
+    <!-- 导航 -->
+    <div style="position: fixed; right: 2%; top: 20px;z-index: 1;">
+        <div onclick="gotoPage('https://moyugame965.github.io/GameList/')"
+            style="margin: 10px 0; line-height:24px;width:50px; height: 24px;border: 1px solid #4CAF50; background-color: #4CAF50; color: white; text-align: center;border-radius: 3px;cursor: pointer;font-size: 15px;">
+            更多</div>
+        <div onclick="gotoPage('https://moyugame965.github.io/Shopping/baodan.html')"
+            style="margin: 10px 0;line-height:24px;width:50px;height: 24px;border: 1px solid #4CAF50; background-color: #4CAF50; color: white; text-align: center;border-radius: 3px;cursor: pointer;font-size: 15px;">
+            商店</div>
+        <div onclick="gotoPage('https://moyugame965.github.io/Coupon/')"
+            style="margin: 10px 0;line-height:24px;width:50px;height: 24px;border: 1px solid #4CAF50; background-color: #4CAF50; color: #ffffff; text-align: center;border-radius: 3px;cursor: pointer;font-size: 15px;">
+            外卖</div>
+        <div onclick="gotoPage('https://moyugame965.github.io/Shopping/jiudianjiu.html')"
+            style="margin: 10px 0;line-height:24px;width:50px;height: 24px;border: 1px solid #4CAF50; background-color: #4CAF50; color: #ffffff; text-align: center;border-radius: 3px;cursor: pointer;font-size: 15px;">
+            9块9</div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        function gotoPage(url) {
+            url && window.open(url);
+        }
+    </script>
+    <script>
+        // 创建全局样式和弹窗结构（兼容移动端）
+        document.addEventListener('DOMContentLoaded', function () {
+            const style = document.createElement('style');
+            style.textContent = `
+    .meal-alert-mask {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 9999;
+        display: none;
+    }
+    .meal-alert-box {
+        position: relative;
+        width: 80%;
+        max-width: 300px;
+        background: #fff;
+        border-radius: 12px;
+        padding: 20px;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+    }
+    .meal-close-btn {
+        display: block;
+        margin: 15px auto 0;
+        padding: 8px 20px;
+        background: #007bff;
+        color: white;
+        border: none;
+        border-radius: 25px;
+        font-size: 12px;
+        touch-action: manipulation;
+    }
+`;
+            document.head.appendChild(style);
+
+            const alertHTML = `
+    <div class="meal-alert-mask">
+        <div class="meal-alert-box">
+            <h3>🍴 用餐时间到！</h3>
+            <p>记得及时补充能量哦~</p>
+            <div style="display: flex;">
+                <button class="meal-close-btn" style="background-color: #ffffff;color: #888888;border: 1px solid #888888;">关闭</button>
+                <button class="meal-close-btn meal-open-btn">优惠卷</button>
+            </div>
+        </div>
+    </div>
+`;
+            document.body.insertAdjacentHTML('beforeend', alertHTML);
+        });
+
+        // 弹窗控制逻辑 
+        const mealAlert = {
+            init() {
+                this.bindEvents();
+                this.startTimer();
+                // this.showAlert();
+            },
+
+            bindEvents() {
+                document.addEventListener('click', (e) => {
+                    if (e.target.closest('.meal-close-btn')) {
+                        this.hideAlert();
+                    }
+
+                    if (e.target.closest('.meal-open-btn')) {
+                        gotoPage('https://moyugame965.github.io/Coupon/');
+                    }
+                });
+            },
+
+            showAlert() {
+                document.querySelector('.meal-alert-mask').style.display = 'block';
+            },
+
+            hideAlert() {
+                document.querySelector('.meal-alert-mask').style.display = 'none';
+            },
+
+            checkTime() {
+                const now = new Date();
+                const currentHour = now.getHours();
+                const currentMin = now.getMinutes();
+
+                // 在11:00和17:00整点触发，误差控制在1分钟内 
+                if ((currentHour === 11 || currentHour === 12 || currentHour === 17 || currentHour === 18) && currentMin === 0) {
+                    this.showAlert();
+                }
+            },
+
+            startTimer() {
+                // 每分钟检查一次时间 
+                setInterval(() => this.checkTime(), 60000);
+                // 初始化立即检查（避免页面打开时正好处于目标时间）
+                this.checkTime();
+            }
+        };
+
+        // 初始化 
+        mealAlert.init();
+        // setTimeout(() => {
+        //     mealAlert.showAlert();
+        // }, 2000);
+
+    </script>
+</body>
+
+</html>
